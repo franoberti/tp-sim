@@ -26,7 +26,7 @@ export function ParametrosSimulacionForm({ onChange }: Props) {
         onChange={(v) => setDuracionHoras(typeof v === "number" ? v : 0)}
         min={1}
       />
-      <NumberInput
+      {/* <NumberInput
         label="Desde (evento)"
         value={desde}
         onChange={(v) => setDesde(typeof v === "number" ? v : 0)}
@@ -37,7 +37,7 @@ export function ParametrosSimulacionForm({ onChange }: Props) {
         value={hasta}
         onChange={(v) => setHasta(typeof v === "number" ? v : 0)}
         min={desde + 1}
-      />
+      /> */}
       <NumberInput
         label="Cantidad de filas a mostrar"
         value={filasAMostrar}

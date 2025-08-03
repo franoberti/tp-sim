@@ -1,5 +1,6 @@
 // Tipos de evento que pueden ocurrir
-export type TipoEvento = 'INICIO' | 'LLEGADA' | 'FIN_ATENCION';
+export type Evento = 'INICIO' | 'LLEGADA_CLIENTE' | 'FIN_ATENCION_1' | 'FIN_ATENCION_2' | 'FIN_ATENCION_3';
+export type EstadoServidor = 'LIBRE' | 'OCUPADO';
 
 // Representa un cliente en el sistema
 export interface Cliente {
@@ -11,30 +12,29 @@ export interface Cliente {
   paga?: boolean; // true si paga, false si fue gratis por garantía
 }
 
-// Representa un evento en el calendario de eventos
-export interface Evento {
-  tipo: TipoEvento;
-  tiempo: number;
-  clienteId?: number;
-  servidorId?: number;
-}
-
 // Representa un servidor (reparador)
 export interface Servidor {
   id: number;
-  ocupado: boolean;
-  clienteActual?: number; // id del cliente
-  finAtencion?: number;
+  estado: EstadoServidor;
+  clienteActual?: number | "-"; // id del cliente
+  tiempoAtencion?: number | "-"; // tiempo que tarda en atender
+  ProximoFinAtencion?: number | "-";
+  cola: number[]; // clientes en espera
+}
+export interface Llegada {
+  tiempoEntreLlegadas: number | "-"; // tiempo entre llegadas de clientes
+  proximaLlegada: number; // tiempo de la próxima llegada
+  servidorAsignado?: number | "-"; // id del servidor asignado
 }
 
 // Representa el estado general del sistema en un momento dado. Es el "vector de estado" de la simulación.
 export interface EstadoSimulacion {
   reloj: number;
-  eventos: Evento[];
-  cola: number[]; // ids de clientes esperando
+  evento: Evento;
+  llegada: Llegada;
   servidores: Servidor[];
-  clientes: Record<number, Cliente>; // todos los clientes por id
-  proximoClienteId: number;
+  cliente: number | "-"; // id del cliente actual
+  proximoClienteId: number; // id del próximo cliente a llegar
 }
 
 export interface PasoSimulacion {
@@ -64,8 +64,8 @@ export interface ParametrosSimulacionUI {
 }
 
 export interface Distribucion {
-  id: string; // "llegadas" o "atencion"
+  id: string; // "llegadas" o "atencion" o "tiempoGarantia"
   nombre: string;
-  tipo: "Exponencial" | "Uniforme";
+  tipo: "Exponencial" | "Uniforme" | "Constante";
   parametros: Record<string, number>;
 }

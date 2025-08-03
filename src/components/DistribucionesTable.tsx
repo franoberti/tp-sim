@@ -1,6 +1,7 @@
 import { Table, Button } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
 import { type Distribucion } from "../simulacion/tipos";
+import { formatearMinutosASegundos } from "@/utils/utils";
 
 interface Props {
   distribuciones: Distribucion[];
@@ -30,9 +31,14 @@ export function DistribucionesTable({ distribuciones, onEditar }: Props) {
               <td className="py-2 px-4">{dist.nombre}</td>
               <td className="py-2 px-4">{dist.tipo}</td>
               <td className="py-2 px-4">
-                {Object.entries(dist.parametros)
-                  .map(([k, v]) => `${k}: ${v}`)
-                  .join(", ")}
+                {Object.entries(dist.parametros).map(([k, v], index) => (
+                  <div key={index}>
+                    {k}:{" "}
+                    {dist.id !== "cobro"
+                      ? formatearMinutosASegundos(v)
+                      : `$ ${v}`}
+                  </div>
+                ))}
               </td>
               <td className="py-2 px-4 text-center">
                 <Button

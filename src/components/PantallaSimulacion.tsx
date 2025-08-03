@@ -19,6 +19,8 @@ import {
   type Distribucion,
   type ParametrosSimulacion,
   type PasoSimulacion,
+  EstadoServidor,
+  EstadoSimulacion,
 } from "../simulacion/tipos";
 import { useState } from "react";
 import { SimulacionTable } from "./SimulacionTable";
@@ -33,20 +35,32 @@ export function PantallaSimulacion() {
     filasAMostrar: 2,
   });
 
-  const [pasos, setPasos] = useState<PasoSimulacion[]>([]);
+  const [pasos, setPasos] = useState<EstadoSimulacion[]>([]);
 
   const [distribuciones, setDistribuciones] = useState<Distribucion[]>([
     {
       id: "llegadas",
       nombre: "Llegadas",
       tipo: "Exponencial",
-      parametros: { lambda: 7 },
+      parametros: { lambda: 60/7 },
     },
     {
       id: "atencion",
       nombre: "Atención",
       tipo: "Uniforme",
       parametros: { min: 13, max: 17 },
+    },
+    {
+      id: "cobro",
+      nombre: "Cobro",
+      tipo: "Uniforme",
+      parametros: { min: 100, max: 400 },
+    },
+    {
+      id: "tiempoGarantia",
+      nombre: "Tiempo de Garantía",
+      tipo: "Constante",
+      parametros: { timepo: 30 },
     },
   ]);
 
@@ -67,32 +81,34 @@ export function PantallaSimulacion() {
   const handleSimular = () => {
     const distLlegadas = distribuciones.find((d) => d.id === "llegadas");
     const distAtencion = distribuciones.find((d) => d.id === "atencion");
+    const distCobro = distribuciones.find((d) => d.id === "cobro");
+    const distTiempoGarantia = distribuciones.find((d) => d.id === "tiempoGarantia");
 
-    if (!distLlegadas || !distAtencion) return;
+    if (!distLlegadas || !distAtencion || !distTiempoGarantia || !distCobro) return;
 
     const parametros: ParametrosSimulacion = {
       lambda: distLlegadas.parametros.lambda,
-      tiempoGarantia: 30, // si querés luego lo hacés configurable
+      tiempoGarantia: distTiempoGarantia.parametros.timepo,
       minAtencion: distAtencion.parametros.min,
       maxAtencion: distAtencion.parametros.max,
-      montoMin: 100,
-      montoMax: 400,
+      montoMin: distCobro.parametros.min,
+      montoMax: distCobro.parametros.max,
       duracionHoras: parametrosUI.duracionHoras,
     };
 
     const resultado = correrSimulacion(parametros);
     console.log("Resultado simulación:", resultado);
-    setResultadoSimulacion({
-      totalCobrado: resultado.totalCobrado,
-      totalGratis: resultado.totalGratis,
-    });
+    // setResultadoSimulacion({
+    //   totalCobrado: resultado.totalCobrado,
+    //   totalGratis: resultado.totalGratis,
+    // });
     setPasos(resultado.pasos);
   };
 
   return (
     <Flex gap="md" align="flex-start" m="md" p="md">
       {/* Panel izquierdo */}
-      <Box w="30%">
+      <Box w="32%">
         {/* Tabla de distribuciones */}
         <Paper shadow="sm" p="md" mb="md">
           <Title order={4} mb="sm">
@@ -125,7 +141,7 @@ export function PantallaSimulacion() {
       </Box>
 
       {/* Panel derecho (resultados) */}
-      <Box w="69%">
+      <Box w="68%">
         <Paper shadow="sm" p="md" h="100%">
           <Title order={4}>Resultados de la Simulación</Title>
           <Divider my="sm" />
@@ -137,8 +153,8 @@ export function PantallaSimulacion() {
           )}
           {resultadoSimulacion ? (
             <Stack>
-              <Title order={5}>Resultados</Title>
-              <p>
+              <Title order={5}>Resultados económicos </Title>
+              {/* <p>
                 <strong>Total recaudado:</strong> $
                 {resultadoSimulacion.totalCobrado}
               </p>
@@ -150,7 +166,7 @@ export function PantallaSimulacion() {
                 <strong>Beneficio neto:</strong> $
                 {resultadoSimulacion.totalCobrado -
                   resultadoSimulacion.totalGratis}
-              </p>
+              </p> */}
             </Stack>
           ) : (
             <p className="text-gray-600">

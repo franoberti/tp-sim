@@ -8,6 +8,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Simulación TP Final',
   description: 'Simulador de reparaciones para taller con garantía',
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

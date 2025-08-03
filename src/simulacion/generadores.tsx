@@ -1,8 +1,8 @@
 // Distribución Exponencial Negativa
 // lambda: tasa de llegadas por unidad de tiempo
-export function generarExponencial(lambda: number): number {
+export function generarExponencialNegativa(lambda: number): number {
   const u = Math.random();
-  return -Math.log(1 - u) / lambda;
+  return -lambda * Math.log(1 - u);
 }
 
 // Distribución Uniforme Continua
