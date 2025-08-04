@@ -1,4 +1,5 @@
 import {
+  Cliente,
   EstadoServidor,
   Llegada,
   type EstadoSimulacion,
@@ -6,7 +7,7 @@ import {
   type ParametrosSimulacion,
   type Servidor,
 } from "./tipos";
-import { generarExponencialNegativa, generarUniforme } from "./generadores";
+import { generarEntero, generarExponencialNegativa, generarUniforme } from "./generadores";
 
 export function obtenerProximoPaso(
   estado: EstadoSimulacion,
@@ -37,6 +38,13 @@ export function obtenerProximoPaso(
     servidores,
   };
 
+    // Agregar lógica de registro de cliente:
+  if (evento === "LLEGADA_CLIENTE") {
+    nuevoEstado = registrarClienteLlegada(nuevoEstado);
+  } else if (evento.startsWith("FIN_ATENCION")) {
+    nuevoEstado = registrarSalidaCliente(nuevoEstado, parametros);
+  }
+
   return nuevoEstado;
 }
 
@@ -49,8 +57,9 @@ function determinarProximoEvento(estado: EstadoSimulacion): {
   const tiempos: { evento: Evento; tiempo: number; servidorId?: number }[] = [];
 
   // Llegada del próximo cliente
-  tiempos.push({ evento: "LLEGADA_CLIENTE", tiempo: estado.llegada.proximaLlegada });
-
+  if (estado.aceptarLlegadas) {
+    tiempos.push({ evento: "LLEGADA_CLIENTE", tiempo: estado.llegada.proximaLlegada });
+  }
   // Fines de atención
   estado.servidores.forEach((servidor) => {
     if (
@@ -67,11 +76,13 @@ function determinarProximoEvento(estado: EstadoSimulacion): {
     }
   });
 
+  // console.log("Tiempos detectados para eventos:");
+  // console.table(tiempos);
   // Obtener el evento más cercano
   const proximo = tiempos.reduce((min, actual) =>
     actual.tiempo < min.tiempo ? actual : min
   );
-
+//  console.log(`→ Próximo evento: ${proximo.evento} en ${proximo.tiempo}`);
   let cliente: number | "-" = "-";
   let nuevoProximoClienteId = estado.proximoClienteId;
 
@@ -92,7 +103,7 @@ function determinarProximoEvento(estado: EstadoSimulacion): {
 }
 
 export function obtenerLlegada( estado: EstadoSimulacion, parametros: ParametrosSimulacion ): { llegada: Llegada } {
-  if (estado.evento === "LLEGADA_CLIENTE") {
+  if (estado.evento === "LLEGADA_CLIENTE" && estado.aceptarLlegadas) {
     const tiempoEntreLlegadas = generarExponencialNegativa(parametros.lambda);
     const proximaLlegada = estado.reloj + tiempoEntreLlegadas;
 
@@ -161,10 +172,10 @@ export function obtenerServidores(
     }
 
     // Si el evento no afecta al servidor, se conserva su estado
-    if (!esLlegadaAsignada && !esFinAtencionActual) {
-      nuevoEstado = anterior.estado;
-      nuevoClienteActual = anterior.clienteActual ?? "-";
-    }
+    // if (!esLlegadaAsignada && !esFinAtencionActual) {
+    //   nuevoEstado = anterior.estado;
+    //   nuevoClienteActual = anterior.clienteActual ?? "-";
+    // }
 
     return {
       ...s,
@@ -179,4 +190,64 @@ export function obtenerServidores(
   return { servidores: nuevosServidores };
 }
 
+export function registrarClienteLlegada(
+  estado: EstadoSimulacion
+): EstadoSimulacion {
+  if (estado.cliente === "-") return estado;
 
+
+  const nuevoCliente: Cliente = {
+    id: estado.cliente,
+    llegada: estado.reloj,
+  };
+
+  return {
+    ...estado,
+    clientes: [...estado.clientes, nuevoCliente],
+    clienteSalida: nuevoCliente
+  };
+}
+
+export function registrarSalidaCliente(
+  estado: EstadoSimulacion,
+  parametros: ParametrosSimulacion
+): EstadoSimulacion {
+  const clienteId = estado.cliente;
+  if (clienteId === "-") return estado;
+
+  const clienteIndex = estado.clientes.findIndex((c) => c.id === clienteId);
+  if (clienteIndex === -1) return estado;
+
+  const cliente = estado.clientes[clienteIndex];
+  const tiempoSistema = estado.reloj - cliente.llegada;
+  const garantia = tiempoSistema > parametros.tiempoGarantia;
+  const monto = generarEntero(parametros.montoMin, parametros.montoMax);
+  const ingresoNeto = garantia ? -monto : monto * 0.75;
+
+  // Actualizar el ingreso acumulado y el gasto por garantía
+  const ingresoAcumulado = (estado.ingresoAcumulado ?? 0) + ingresoNeto;
+  const gastoPorGarantiaAcumulado = garantia
+    ? (estado.gastoPorGarantiaAcumulado ?? 0) + monto
+    : estado.gastoPorGarantiaAcumulado;
+
+  // Actualizar el estado del cliente
+  estado = {
+    ...estado,
+    ingresoAcumulado,
+    gastoPorGarantiaAcumulado,
+  };
+
+  const actualizado: Cliente = {
+    ...cliente,
+    salida: estado.reloj,
+    tiempoSistema,
+    garantia,
+    monto,
+    ingresoNeto,
+  };
+
+  const clientesActualizados = [...estado.clientes];
+  clientesActualizados.splice(clienteIndex, 1);
+
+  return { ...estado, clientes: clientesActualizados, clienteSalida: actualizado };
+}

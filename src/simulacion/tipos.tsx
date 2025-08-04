@@ -5,11 +5,12 @@ export type EstadoServidor = 'LIBRE' | 'OCUPADO';
 // Representa un cliente en el sistema
 export interface Cliente {
   id: number;
-  horaLlegada: number;
-  horaInicioAtencion?: number;
-  horaFinAtencion?: number;
-  tiempoEspera?: number;
-  paga?: boolean; // true si paga, false si fue gratis por garantía
+  llegada: number;
+  salida?: number;
+  tiempoSistema?: number;
+  garantia?: boolean;
+  monto?: number;
+  ingresoNeto?: number;
 }
 
 // Representa un servidor (reparador)
@@ -35,16 +36,26 @@ export interface EstadoSimulacion {
   servidores: Servidor[];
   cliente: number | "-"; // id del cliente actual
   proximoClienteId: number; // id del próximo cliente a llegar
+  clientes: Cliente[]; // lista de clientes que han llegado
+  ingresoAcumulado?: number; // monto total acumulado por los clientes
+  gastoPorGarantiaAcumulado?: number; // monto total gastado por garantías
+  clienteSalida?: Cliente; // cliente que acaba de salir del sistema
+  aceptarLlegadas: boolean;
 }
 
 export interface PasoSimulacion {
   reloj: number;
-  evento: string;
-  clienteId?: number;
-  servidorId?: number;
-  cola: number[];
-  servidores: { id: number; ocupado: boolean }[];
+  evento: Evento;
+  llegada: Llegada;
+  servidores: Servidor[];
+  cliente: number | "-"; // id del cliente actual
+  proximoClienteId: number; // id del próximo cliente a llegar
+  ingresoAcumulado?: number; // monto total acumulado por los clientes
+  gastoPorGarantiaAcumulado?: number; // monto total gastado por garantías
+  clienteSalida?: Cliente; // cliente que acaba de salir del sistema
+  aceptarLlegadas: boolean;
 }
+
 
 export interface ParametrosSimulacion {
   lambda: number;             // tasa de llegada

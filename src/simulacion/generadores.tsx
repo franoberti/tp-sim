@@ -7,9 +7,9 @@ export function generarExponencialNegativa(lambda: number): number {
 
 // Distribución Uniforme Continua
 // entre min y max (ambos en minutos por ejemplo)
-export function generarUniforme(min: number, max: number): number {
+export function generarUniforme(a: number, b: number): number {
   const u = Math.random();
-  return min + u * (max - min);
+  return a + u * (b - a);
 }
 
 // Distribución Uniforme Entera (para generar montos entre 100 y 400)

@@ -1,5 +1,5 @@
 
-import { type EstadoSimulacion, type ParametrosSimulacion, type Servidor } from "./tipos";
+import { PasoSimulacion, type EstadoSimulacion, type ParametrosSimulacion, type Servidor } from "./tipos";
 import { obtenerProximoPaso } from "./eventos";
 
 // Inicializa el estado base de la simulación
@@ -21,6 +21,10 @@ function crearEstadoInicial(): EstadoSimulacion {
       proximaLlegada: 0,
       servidorAsignado: "-",
     },
+    clientes: [],
+    aceptarLlegadas: true,
+    ingresoAcumulado: 0,
+    gastoPorGarantiaAcumulado: 0,
   };
 
   return estado;
@@ -32,17 +36,24 @@ export function correrSimulacion(
   parametros: ParametrosSimulacion
 ): {
   estadoFinal: EstadoSimulacion;
-  // totalCobrado: number;
-  // totalGratis: number;
-  pasos: EstadoSimulacion[];
+  pasos: PasoSimulacion[];
 } {
   let estado = crearEstadoInicial();
   const tiempoLimite = parametros.duracionHoras * 60; // minutos
 
   
-  const pasos: EstadoSimulacion[] = [];
+  const pasos: PasoSimulacion[] = [];
 
-  while (estado.reloj <= tiempoLimite) {
+  // let iteraciones = 0;
+  while (estado.aceptarLlegadas || estado.servidores.some(s => s.estado === "OCUPADO" || s.cola.length > 0)) {
+    if (estado.aceptarLlegadas && estado.reloj >= tiempoLimite) {
+      estado = { ...estado, aceptarLlegadas: false };
+    }
+    //   iteraciones++;
+    
+    // if (iteraciones > 2000) {
+    //   throw new Error("Demasiadas iteraciones, posible bucle infinito");
+    // }
 
     // Capturamos el estado antes de procesar
     pasos.push({
@@ -59,30 +70,24 @@ export function correrSimulacion(
         tiempoAtencion: s.tiempoAtencion ?? "-",
         ProximoFinAtencion: s.ProximoFinAtencion ?? "-",
       })),
+      clienteSalida: estado.clienteSalida,
+      aceptarLlegadas: estado.aceptarLlegadas,
+      ingresoAcumulado: estado.ingresoAcumulado,
+      gastoPorGarantiaAcumulado: estado.gastoPorGarantiaAcumulado,
     });
+
+//     console.log(
+//   `Reloj: ${estado.reloj.toFixed(2)} | ` +
+//   estado.servidores.map((s, i) =>
+//     `S${i + 1}(${s.estado}, C:${s.clienteActual ?? "-"}, Cola:[${s.cola.join(",")}], Fin:${s.ProximoFinAtencion ?? "-"})`
+//   ).join(" | ")
+// );
 
     estado = obtenerProximoPaso(estado, parametros);
   }
 
-  // Cálculo de resultados
-//   let totalCobrado = 0;
-//   let totalGratis = 0;
-
-//   Object.values(estado.clientes).forEach((cliente: Cliente) => {
-//   if (cliente.horaFinAtencion) {
-//     const monto = generarEntero(parametros.montoMin, parametros.montoMax);
-//     if (cliente.paga) {
-//       totalCobrado += monto;
-//     } else {
-//       totalGratis += monto;
-//     }
-//   }
-// });
-
   return {
     estadoFinal: estado,
-    // totalCobrado,
-    // totalGratis,
     pasos,
   };
 }

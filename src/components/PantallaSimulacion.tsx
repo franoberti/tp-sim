@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import {
   Box,
   Button,
@@ -19,8 +19,6 @@ import {
   type Distribucion,
   type ParametrosSimulacion,
   type PasoSimulacion,
-  EstadoServidor,
-  EstadoSimulacion,
 } from "../simulacion/tipos";
 import { useState } from "react";
 import { SimulacionTable } from "./SimulacionTable";
@@ -35,14 +33,14 @@ export function PantallaSimulacion() {
     filasAMostrar: 2,
   });
 
-  const [pasos, setPasos] = useState<EstadoSimulacion[]>([]);
+  const [pasos, setPasos] = useState<PasoSimulacion[]>([]);
 
   const [distribuciones, setDistribuciones] = useState<Distribucion[]>([
     {
       id: "llegadas",
       nombre: "Llegadas",
       tipo: "Exponencial",
-      parametros: { lambda: 60/7 },
+      parametros: { lambda: 60 / 7 },
     },
     {
       id: "atencion",
@@ -82,9 +80,12 @@ export function PantallaSimulacion() {
     const distLlegadas = distribuciones.find((d) => d.id === "llegadas");
     const distAtencion = distribuciones.find((d) => d.id === "atencion");
     const distCobro = distribuciones.find((d) => d.id === "cobro");
-    const distTiempoGarantia = distribuciones.find((d) => d.id === "tiempoGarantia");
+    const distTiempoGarantia = distribuciones.find(
+      (d) => d.id === "tiempoGarantia"
+    );
 
-    if (!distLlegadas || !distAtencion || !distTiempoGarantia || !distCobro) return;
+    if (!distLlegadas || !distAtencion || !distTiempoGarantia || !distCobro)
+      return;
 
     const parametros: ParametrosSimulacion = {
       lambda: distLlegadas.parametros.lambda,
@@ -106,7 +107,7 @@ export function PantallaSimulacion() {
   };
 
   return (
-    <Flex gap="md" align="flex-start" m="md" p="md">
+    <Flex gap="md" align="flex-start">
       {/* Panel izquierdo */}
       <Box w="32%">
         {/* Tabla de distribuciones */}
@@ -138,6 +139,24 @@ export function PantallaSimulacion() {
             Iniciar Simulación
           </Button>
         </Stack>
+        {resultadoSimulacion && (
+          <Stack>
+            <Title order={5}>Resultados económicos </Title>
+            <p>
+                <strong>Total recaudado:</strong> $
+                {resultadoSimulacion.totalCobrado}
+              </p>
+              <p>
+                <strong>Total gratis (garantía):</strong> $
+                {resultadoSimulacion.totalGratis}
+              </p>
+              <p>
+                <strong>Beneficio neto:</strong> $
+                {resultadoSimulacion.totalCobrado -
+                  resultadoSimulacion.totalGratis}
+              </p>
+          </Stack>
+        )}
       </Box>
 
       {/* Panel derecho (resultados) */}
@@ -151,24 +170,7 @@ export function PantallaSimulacion() {
               filasAMostrar={parametrosUI.filasAMostrar}
             />
           )}
-          {resultadoSimulacion ? (
-            <Stack>
-              <Title order={5}>Resultados económicos </Title>
-              {/* <p>
-                <strong>Total recaudado:</strong> $
-                {resultadoSimulacion.totalCobrado}
-              </p>
-              <p>
-                <strong>Total gratis (garantía):</strong> $
-                {resultadoSimulacion.totalGratis}
-              </p>
-              <p>
-                <strong>Beneficio neto:</strong> $
-                {resultadoSimulacion.totalCobrado -
-                  resultadoSimulacion.totalGratis}
-              </p> */}
-            </Stack>
-          ) : (
+          {pasos.length == 0 && (
             <p className="text-gray-600">
               Ejecutá una simulación para ver resultados.
             </p>
