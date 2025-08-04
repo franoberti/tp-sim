@@ -99,10 +99,10 @@ export function PantallaSimulacion() {
 
     const resultado = correrSimulacion(parametros);
     console.log("Resultado simulación:", resultado);
-    // setResultadoSimulacion({
-    //   totalCobrado: resultado.totalCobrado,
-    //   totalGratis: resultado.totalGratis,
-    // });
+    setResultadoSimulacion({
+      totalCobrado: resultado.estadoFinal.ingresoAcumulado || 0,
+      totalGratis: resultado.estadoFinal.gastoPorGarantiaAcumulado || 0,
+    });
     setPasos(resultado.pasos);
   };
 
