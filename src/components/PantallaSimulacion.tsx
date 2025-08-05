@@ -58,7 +58,7 @@ export function PantallaSimulacion() {
       id: "tiempoGarantia",
       nombre: "Tiempo de Garantía",
       tipo: "Constante",
-      parametros: { timepo: 30 },
+      parametros: { tiempo: 30 },
     },
   ]);
 
@@ -68,43 +68,53 @@ export function PantallaSimulacion() {
   } | null>(null);
 
   const [editando, setEditando] = useState<Distribucion | null>(null);
+  const [duracionEnMs, setDuracionEnMs] = useState<number | null>(null);
+  const [duracionEnSegundos, setDuracionEnSegundos] = useState<number | null>(null);
 
   const handleGuardarDistribucion = (nueva: Distribucion) => {
+    console.log("Guardando distribución:", nueva);
     setDistribuciones((prev) =>
       prev.map((d) => (d.id === nueva.id ? nueva : d))
     );
     close();
   };
 
-  const handleSimular = () => {
-    const distLlegadas = distribuciones.find((d) => d.id === "llegadas");
-    const distAtencion = distribuciones.find((d) => d.id === "atencion");
-    const distCobro = distribuciones.find((d) => d.id === "cobro");
-    const distTiempoGarantia = distribuciones.find(
-      (d) => d.id === "tiempoGarantia"
-    );
+    const handleSimular = () => {
+      const distLlegadas = distribuciones.find((d) => d.id === "llegadas");
+      const distAtencion = distribuciones.find((d) => d.id === "atencion");
+      const distCobro = distribuciones.find((d) => d.id === "cobro");
+      const distTiempoGarantia = distribuciones.find((d) => d.id === "tiempoGarantia");
 
-    if (!distLlegadas || !distAtencion || !distTiempoGarantia || !distCobro)
-      return;
+      if (!distLlegadas || !distAtencion || !distTiempoGarantia || !distCobro)
+        return;
 
-    const parametros: ParametrosSimulacion = {
-      lambda: distLlegadas.parametros.lambda,
-      tiempoGarantia: distTiempoGarantia.parametros.timepo,
-      minAtencion: distAtencion.parametros.min,
-      maxAtencion: distAtencion.parametros.max,
-      montoMin: distCobro.parametros.min,
-      montoMax: distCobro.parametros.max,
-      duracionHoras: parametrosUI.duracionHoras,
+      const parametros: ParametrosSimulacion = {
+        lambda: distLlegadas.parametros.lambda,
+        tiempoGarantia: distTiempoGarantia.parametros.tiempo,
+        minAtencion: distAtencion.parametros.min,
+        maxAtencion: distAtencion.parametros.max,
+        montoMin: distCobro.parametros.min,
+        montoMax: distCobro.parametros.max,
+        duracionHoras: parametrosUI.duracionHoras,
+      };
+
+      // ⏱ Inicio del tiempo
+      const inicio = performance.now();
+
+      const resultado = correrSimulacion(parametros);
+
+      // ⏱ Fin del tiempo
+      const fin = performance.now();
+      setDuracionEnMs(fin - inicio); // en milisegundos
+      // setDuracionEnSegundos(duracionEnMs! / 1000);
+
+
+      setResultadoSimulacion({
+        totalCobrado: resultado.estadoFinal.ingresoAcumulado || 0,
+        totalGratis: resultado.estadoFinal.gastoPorGarantiaAcumulado || 0,
+      });
+      setPasos(resultado.pasos);
     };
-
-    const resultado = correrSimulacion(parametros);
-    console.log("Resultado simulación:", resultado);
-    setResultadoSimulacion({
-      totalCobrado: resultado.estadoFinal.ingresoAcumulado || 0,
-      totalGratis: resultado.estadoFinal.gastoPorGarantiaAcumulado || 0,
-    });
-    setPasos(resultado.pasos);
-  };
 
   return (
     <Flex gap="md" align="flex-start">
@@ -141,20 +151,23 @@ export function PantallaSimulacion() {
         </Stack>
         {resultadoSimulacion && (
           <Stack>
-            <Title order={5}>Resultados económicos </Title>
+            <h3 className="text-lg font-semibold">Resultados Finales</h3>
+            <p>✔️ Ingreso total: ${resultadoSimulacion.totalCobrado?.toFixed(2)}</p>
             <p>
-                <strong>Total recaudado:</strong> $
-                {resultadoSimulacion.totalCobrado}
-              </p>
-              <p>
-                <strong>Total gratis (garantía):</strong> $
-                {resultadoSimulacion.totalGratis}
-              </p>
-              <p>
-                <strong>Beneficio neto:</strong> $
-                {resultadoSimulacion.totalCobrado -
-                  resultadoSimulacion.totalGratis}
-              </p>
+              💸 Gasto por garantía: $
+              {resultadoSimulacion.totalGratis?.toFixed(2)}
+            </p>
+            <p>
+              {resultadoSimulacion.totalCobrado > 0
+                ? "✅ El sistema funciona con beneficios."
+                : "❌ El sistema no es rentable con la garantía actual."}
+            </p>
+            <p>
+              ⏱ Duración de la simulación:{" "}
+              {duracionEnMs !== null ? `${duracionEnMs.toFixed(2)} ms` : "N/A"}
+              {/* {duracionEnSegundos} segundos */}
+
+            </p>
           </Stack>
         )}
       </Box>

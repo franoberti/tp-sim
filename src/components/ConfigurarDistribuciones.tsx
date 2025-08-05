@@ -16,33 +16,34 @@ export function ConfigurarDistribuciones({
 }: Props) {
   const [tipo, setTipo] = useState(distribucion.tipo);
   const [lambda, setLambda] = useState(60/7);
-  const [min, setMin] = useState(0);
-  const [max, setMax] = useState(0);
+  const [min, setMin] = useState(13);
+  const [max, setMax] = useState(17);
   const [tiempoGarantia, setTiempoGarantia] = useState(30);
 
   useEffect(() => {
     if (distribucion.tipo === "Exponencial") {
       setLambda(distribucion.parametros.lambda);
-    } if (distribucion.tipo === "Exponencial") 
+    } else if (distribucion.tipo === "Uniforme") 
        {
       setMin(distribucion.parametros.min);
       setMax(distribucion.parametros.max);
     }
     else {
-      setTiempoGarantia(distribucion.parametros.timepo);
+      setTiempoGarantia(distribucion.parametros.tiempo);
     }
     setTipo(distribucion.tipo);
   }, [distribucion]);
 
   const handleGuardar = () => {
     let nuevosParametros: Record<string, number>;
-    if (tipo === "Exponencial") {
+    if (tipo == "Exponencial") {
+      
       nuevosParametros = { lambda };
-    } if (tipo === "Uniforme") {
+    } else if (tipo === "Uniforme") {
       nuevosParametros = { min, max };
     }
     else {
-      nuevosParametros = { timepo: tiempoGarantia };
+      nuevosParametros = { tiempo: tiempoGarantia };
     }
 
     onGuardar({
@@ -84,8 +85,8 @@ export function ConfigurarDistribuciones({
         <>
           <NumberInput
             label="Tiempo de Garantia (minutos)"
-            value={min}
-            onChange={(v) => typeof v === "number" && setMin(v)}
+            value={tiempoGarantia}
+            onChange={(v) => typeof v === "number" && setTiempoGarantia(v)}
           />
         </>
       )}
