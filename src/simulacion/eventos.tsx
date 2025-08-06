@@ -7,7 +7,7 @@ import {
   type ParametrosSimulacion,
   type Servidor,
 } from "./tipos";
-import { generarEntero, generarExponencialNegativa, generarUniforme } from "./generadores";
+import { generarExponencialNegativa, generarUniforme } from "./generadores";
 
 export function obtenerProximoPaso(
   estado: EstadoSimulacion,
@@ -76,13 +76,10 @@ function determinarProximoEvento(estado: EstadoSimulacion): {
     }
   });
 
-  // console.log("Tiempos detectados para eventos:");
-  // console.table(tiempos);
   // Obtener el evento más cercano
   const proximo = tiempos.reduce((min, actual) =>
     actual.tiempo < min.tiempo ? actual : min
   );
-//  console.log(`→ Próximo evento: ${proximo.evento} en ${proximo.tiempo}`);
   let cliente: number | "-" = "-";
   let nuevoProximoClienteId = estado.proximoClienteId;
 
@@ -221,7 +218,7 @@ export function registrarSalidaCliente(
   const cliente = estado.clientes[clienteIndex];
   const tiempoSistema = estado.reloj - cliente.llegada;
   const garantia = tiempoSistema > parametros.tiempoGarantia;
-  const monto = generarEntero(parametros.montoMin, parametros.montoMax);
+  const monto = generarUniforme(parametros.montoMin, parametros.montoMax);
   const ingresoNeto = garantia ? -monto : monto * 0.75;
 
   // Actualizar el ingreso acumulado y el gasto por garantía
@@ -229,12 +226,14 @@ export function registrarSalidaCliente(
   const gastoPorGarantiaAcumulado = garantia
     ? (estado.gastoPorGarantiaAcumulado ?? 0) + monto
     : estado.gastoPorGarantiaAcumulado;
+  
 
   // Actualizar el estado del cliente
   estado = {
     ...estado,
     ingresoAcumulado,
     gastoPorGarantiaAcumulado,
+    clientesConGarantia: garantia ? estado.clientesConGarantia! + 1 : estado.clientesConGarantia!,
   };
 
   const actualizado: Cliente = {

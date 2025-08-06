@@ -65,6 +65,7 @@ export function PantallaSimulacion() {
   const [resultadoSimulacion, setResultadoSimulacion] = useState<{
     totalCobrado: number;
     totalGratis: number;
+    cantidadClientesConGarantia: number;
   } | null>(null);
 
   const [editando, setEditando] = useState<Distribucion | null>(null);
@@ -72,7 +73,6 @@ export function PantallaSimulacion() {
   const [duracionEnSegundos, setDuracionEnSegundos] = useState<number | null>(null);
 
   const handleGuardarDistribucion = (nueva: Distribucion) => {
-    console.log("Guardando distribución:", nueva);
     setDistribuciones((prev) =>
       prev.map((d) => (d.id === nueva.id ? nueva : d))
     );
@@ -112,6 +112,7 @@ export function PantallaSimulacion() {
       setResultadoSimulacion({
         totalCobrado: resultado.estadoFinal.ingresoAcumulado || 0,
         totalGratis: resultado.estadoFinal.gastoPorGarantiaAcumulado || 0,
+        cantidadClientesConGarantia: resultado.estadoFinal.clientesConGarantia || 0,
       });
       setPasos(resultado.pasos);
     };
@@ -153,6 +154,7 @@ export function PantallaSimulacion() {
           <Stack>
             <h3 className="text-lg font-semibold">Resultados Finales</h3>
             <p>✔️ Ingreso total: ${resultadoSimulacion.totalCobrado?.toFixed(2)}</p>
+            <p>👨🏾‍💼 Cantidad de clientes con garantía: {resultadoSimulacion.cantidadClientesConGarantia}</p>
             <p>
               💸 Gasto por garantía: $
               {resultadoSimulacion.totalGratis?.toFixed(2)}
@@ -166,7 +168,6 @@ export function PantallaSimulacion() {
               ⏱ Duración de la simulación:{" "}
               {duracionEnMs !== null ? `${duracionEnMs.toFixed(2)} ms` : "N/A"}
               {/* {duracionEnSegundos} segundos */}
-
             </p>
           </Stack>
         )}

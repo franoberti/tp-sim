@@ -39,6 +39,7 @@ export interface EstadoSimulacion {
   clientes: Cliente[]; // lista de clientes que han llegado
   ingresoAcumulado?: number; // monto total acumulado por los clientes
   gastoPorGarantiaAcumulado?: number; // monto total gastado por garantías
+  clientesConGarantia?: number; // cantidad de clientes que han recibido garantía
   clienteSalida?: Cliente; // cliente que acaba de salir del sistema
   aceptarLlegadas: boolean;
 }
@@ -52,6 +53,7 @@ export interface PasoSimulacion {
   proximoClienteId: number; // id del próximo cliente a llegar
   ingresoAcumulado?: number; // monto total acumulado por los clientes
   gastoPorGarantiaAcumulado?: number; // monto total gastado por garantías
+  clientesConGarantia?: number; // cantidad de clientes que han recibido garantía
   clienteSalida?: Cliente; // cliente que acaba de salir del sistema
   aceptarLlegadas: boolean;
 }
